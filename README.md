@@ -21,7 +21,8 @@ Configure estas variáveis no projeto Vercel:
 - `CRON_SECRET`: segredo aleatório com pelo menos 32 caracteres.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` e `MAIL_FROM`: credenciais SMTP para lembretes por e-mail.
 
-O arquivo `vercel.json` configura o Express como uma função Vercel. A Hobby executa Cron
+O Vercel detecta o Express automaticamente; `vercel.json` inclui os arquivos públicos
+na função. A Hobby executa Cron
 no máximo uma vez por dia, então configure um agendador externo gratuito para fazer um
 `POST` a cada minuto em `/api/cron/reminders`, enviando
 `Authorization: Bearer <CRON_SECRET>`. Não coloque o segredo no código nem o envie pelo chat.
