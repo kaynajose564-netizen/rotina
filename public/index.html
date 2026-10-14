@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <title>Rotina Diária — Calendário, Notas & Alarmes</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏰</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Login / Criar conta -->
+  <section id="auth" class="auth hidden">
+    <h1 class="logo" style="text-align:center;margin-bottom:16px">⏰ Rotina Diária</h1>
+    <div class="auth-card">
+      <div class="tabs"><button type="button" id="tabLogin" class="on">Entrar</button><button type="button" id="tabReg">Criar conta</button></div>
+      <form id="formAuth">
+        <div class="form-group" id="gName" style="display:none"><label for="aName">Nome</label><input id="aName" maxlength="60" autocomplete="name"></div>
+        <div class="form-group"><label for="aEmail">E-mail (é para onde vão os lembretes)</label><input id="aEmail" type="email" required autocomplete="email"></div>
+        <div class="form-group"><label for="aPass">Senha (mín. 8 caracteres)</label><input id="aPass" type="password" required minlength="8" autocomplete="current-password"></div>
+        <div id="authErr" class="err" role="alert"></div>
+        <button class="btn btn-primary" id="btnAuth" style="width:100%">Entrar</button>
+      </form>
+    </div>
+  </section>
+
+  <div id="app" class="app hidden">
+    <header class="header">
+      <div class="header-top">
+        <h1 class="logo">⏰ Rotina Diária</h1>
+        <div class="header-actions">
+          <button id="btnTheme" class="icon-btn" title="Tema" aria-label="Alternar tema">🌙</button>
+          <button id="btnNotif" class="icon-btn" title="Ativar notificações" aria-label="Notificações">🔔</button>
+          <button id="btnOut" class="icon-btn" title="Sair" aria-label="Sair">🚪</button>
+        </div>
+      </div>
+      <div class="clock-box"><div id="liveClock" class="live-clock">00:00:00</div><div id="liveDate" class="live-date"></div></div>
+    </header>
+
+    <section class="cal">
+      <div class="cal-head">
+        <button class="icon-btn" id="calPrev" aria-label="Mês anterior">‹</button>
+        <h2 id="calTitle"></h2>
+        <button class="icon-btn" id="calNext" aria-label="Próximo mês">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </section>
+
+    <main class="main">
+      <div class="day-header"><h2 id="dayTitle"></h2><span id="noteCount" class="task-count"></span></div>
+      <div id="taskList" class="task-list"></div>
+      <div id="emptyState" class="empty-state hidden"><div class="empty-icon">📝</div><p>Nenhuma nota neste dia.</p><p class="empty-hint">Toque em + para escrever.</p></div>
+    </main>
+
+    <button id="btnAdd" class="fab" aria-label="Nova nota">+</button>
+
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-backdrop" id="modalBackdrop"></div>
+      <div class="modal-content">
+        <div class="modal-header"><h3 id="modalTitle">Nova nota</h3><button class="icon-btn close-btn" id="btnClose" aria-label="Fechar">✕</button></div>
+        <form id="formNote">
+          <div class="form-group"><label for="nTitle">Título</label><input id="nTitle" required maxlength="120" autocomplete="off" placeholder="Ex: Reunião, remédio, prova..."></div>
+          <div class="form-group"><label for="nBody">Anotação</label><textarea id="nBody" rows="3" maxlength="2000" placeholder="Escreva aqui..."></textarea></div>
+          <div class="form-group"><label for="nDate">Data</label><input id="nDate" type="date" required></div>
+          <div class="form-group"><label for="nTime">Horário (preencheu = alarme automático)</label><input id="nTime" type="time"></div>
+          <div class="form-group"><label for="nAdv">Avisar</label>
+            <select id="nAdv"><option value="0">No horário exato</option><option value="5">5 min antes</option><option value="10">10 min antes</option><option value="15">15 min antes</option><option value="30">30 min antes</option><option value="60">1 hora antes</option></select></div>
+          <div class="form-group row"><label class="switch-label"><input type="checkbox" id="nAlarm" checked><span class="switch"></span>Alarme (som + notificação)</label></div>
+          <div class="form-group row"><label class="switch-label"><input type="checkbox" id="nEmail" checked><span class="switch"></span>Lembrete por e-mail</label></div>
+          <div class="modal-actions"><button type="button" id="btnDel" class="btn btn-danger hidden">Excluir</button><button class="btn btn-primary">Salvar</button></div>
+        </form>
+      </div>
+    </div>
+    <div id="toast" class="toast hidden" role="status"></div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+.env
+.secret
+.vercel/
+node_modules/
+outbox.log
+rotina.db
+rotina.db-shm
+rotina.db-wal
