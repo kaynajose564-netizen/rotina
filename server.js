@@ -99,6 +99,7 @@ async function sendMail(to, subject, text) {
 
 const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', E.VERCEL ? 1 : false);
 app.use((req, res, next) => {
   res.set({
     'X-Content-Type-Options': 'nosniff',
@@ -109,6 +110,15 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.json({ limit: '50kb' }));
+app.use((req, res, next) => {
+  if (
+    req.is('application/json')
+    && (!req.body || typeof req.body !== 'object' || Array.isArray(req.body))
+  ) {
+    return res.status(400).json({ error: 'O corpo da requisição deve ser um objeto JSON.' });
+  }
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api', asyncHandler(async (req, res, next) => {
   await db.ready;
@@ -116,6 +126,11 @@ app.use('/api', asyncHandler(async (req, res, next) => {
 }));
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const validDate = date => {
+  if (typeof date !== 'string' || !/^\d{4}-\d\d-\d\d$/.test(date)) return false;
+  const parsed = new Date(`${date}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+};
 
 app.post('/api/register', limit, asyncHandler(async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();
@@ -174,7 +189,7 @@ app.get('/api/me', auth, (req, res) => res.json({ user: req.user }));
 
 function clean(body) {
   const title = String(body.title || '').trim().slice(0, 120);
-  if (!title || !/^\d{4}-\d\d-\d\d$/.test(body.date)) return null;
+  if (!title || !validDate(body.date)) return null;
   const time = /^([01]\d|2[0-3]):[0-5]\d$/.test(body.time || '') ? body.time : null;
   const advance = [0, 5, 10, 15, 30, 60].includes(+body.advance) ? +body.advance : 0;
   return [
@@ -308,9 +323,14 @@ app.post('/api/cron/reminders', asyncHandler(async (req, res) => {
 }));
 
 app.use((error, req, res, next) => {
-  console.error('Erro na requisição:', error);
   if (res.headersSent) return next(error);
-  res.status(500).json({ error: 'Erro interno.' });
+  const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 500
+    ? error.status
+    : 500;
+  if (status === 500) console.error('Erro na requisição:', error);
+  res.status(status).json({
+    error: status === 400 ? 'JSON inválido.' : status === 413 ? 'Requisição muito grande.' : 'Erro interno.',
+  });
 });
 
 if (require.main === module) {

@@ -51,6 +51,13 @@ test('serve o painel e mantém os cabeçalhos de segurança', async () => {
 });
 
 test('cadastro valida dados, cria sessão e permite consultar as notas', async () => {
+  const nullBody = await request('/api/register', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: 'null',
+  });
+  assert.equal(nullBody.response.status, 400);
+
   const invalid = await request('/api/register', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -88,6 +95,13 @@ test('notas podem ser criadas, editadas e apagadas somente pelo dono', async () 
   });
   assert.equal(login.response.status, 200);
   const cookie = login.response.headers.get('set-cookie').split(';')[0];
+
+  const invalidDate = await request('/api/notes', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ title: 'Data inválida', date: '2026-02-30' }),
+  }, cookie);
+  assert.equal(invalidDate.response.status, 400);
 
   const created = await request('/api/notes', {
     method: 'POST',
