@@ -17,7 +17,7 @@ app.whenReady().then(async()=>{
   });
 });
 ipcMain.handle('pc:metrics',async()=>{
-  const [load,mem,cpu,graphics,disks,fs,temp,network]=await Promise.allSettled([si.currentLoad(),si.mem(),si.cpu(),si.graphics(),si.disksIO(),si.fsSize(),si.cpu温度?si.cpu温度():si.cpuTemperature(),si.networkStats()]);
+  const [load,mem,cpu,graphics,disks,fs,temp,network]=await Promise.allSettled([si.currentLoad(),si.mem(),si.cpu(),si.graphics(),si.disksIO(),si.fsSize(),si.cpuTemperature(),si.networkStats()]);
   const value=x=>x.status==='fulfilled'?x.value:null;
   const l=value(load),m=value(mem),c=value(cpu),g=value(graphics),d=value(disks),f=value(fs),t=value(temp),n=value(network);
   return {timestamp:Date.now(),cpu:{usage:l?Number(l.currentLoad.toFixed(1)):null,brand:c?.brand||null,cores:c?.cores||null},memory:{used:m?m.used:null,total:m?m.total:null,percent:m?Number((m.used/m.total*100).toFixed(1)):null},gpu:(g?.controllers||[]).map(x=>({model:x.model||x.name||'GPU',vendor:x.vendor||null,vram:x.vram||null,utilization:Number.isFinite(x.utilizationGpu)?x.utilizationGpu:null,temperature:Number.isFinite(x.temperatureGpu)?x.temperatureGpu:null})),disks:(f||[]).map(x=>({mount:x.mount,used:x.used,size:x.size,percent:x.use})),diskIO:d?{readBytes:d.rIO,writeBytes:d.wIO}:null,temperature:t&&Number.isFinite(t.main)?t.main:null,network:(n||[]).map(x=>({iface:x.iface,rx_sec:x.rx_sec,tx_sec:x.tx_sec})),fps:null,fpsNote:'FPS exige integração específica com cada jogo/overlay.'};
