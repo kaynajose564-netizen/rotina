@@ -11,7 +11,7 @@ app.whenReady().then(async()=>{
   const webApp=require('../server');
   httpServer=webApp.listen(0,'127.0.0.1',()=>{
     const port=httpServer.address().port;
-    windowRef=new BrowserWindow({width:1440,height:940,minWidth:900,minHeight:650,backgroundColor:'#0d0e17',title:'KAYNÃ CONTROL',webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+    windowRef=new BrowserWindow({width:1440,height:940,minWidth:900,minHeight:650,backgroundColor:'#080b09',title:'KAYNÃ CONTROL',webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
     windowRef.loadURL('http://127.0.0.1:'+port);
     windowRef.webContents.setWindowOpenHandler(({url})=>{if(url.startsWith('https://'))shell.openExternal(url);return {action:'deny'}});
   });
