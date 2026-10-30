@@ -1,35 +1,25 @@
-# Rotina Diária v2
-Calendário + notas com horário (alarme automático) + lembrete por e-mail + contas de usuário.
+# KAYNÃ CONTROL
 
-## Rodar
-Requer Node 22.5+.
-    npm install
-    npm start        # http://localhost:3000
+Painel pessoal com duas áreas: **KAYNÃ STUDY** e **KAYNÃ PC**.
 
-## E-mail real (SMTP)
-Sem configurar, os e-mails vão para `outbox.log` (modo teste). Para enviar de verdade:
-    SMTP_HOST=smtp.gmail.com SMTP_PORT=587 SMTP_USER=seu@gmail.com SMTP_PASS=senha-de-app MAIL_FROM=seu@gmail.com npm start
-(Gmail: use "Senha de app". Alternativas gratuitas: Brevo, Resend, Mailgun.)
+## O que já funciona
+- Painel inicial com nível, XP, sequência e missões.
+- Criar, concluir e excluir missões de estudo.
+- XP, níveis e conquistas.
+- Cronômetro de foco de 15 a 120 minutos, com pausa e conclusão.
+- Tema claro/escuro.
+- Dados do estudo salvos localmente no navegador.
 
-## Publicar no Vercel
+## KAYNÃ PC
+A interface está preparada, mas as métricas reais de CPU, RAM, SSD, GPU NVIDIA, temperaturas e FPS ainda dependem de um aplicativo nativo para Windows e integração com sensores/drivers. Esta versão não simula nem inventa esses números. A limpeza do Windows permanece desabilitada até existir integração segura com prévia e confirmação.
 
-O deploy usa PostgreSQL do Neon; o SQLite local continua sendo usado no desenvolvimento.
-Configure estas variáveis no projeto Vercel:
+## Executar
+Requer Node.js 22.5 ou superior:
+```bash
+npm install
+npm start
+``
+Abra http://localhost:3000
 
-- `DATABASE_URL`: string de conexão do banco Neon.
-- `SECRET`: segredo aleatório com pelo menos 32 caracteres.
-- `CRON_SECRET`: segredo aleatório com pelo menos 32 caracteres.
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` e `MAIL_FROM`: credenciais SMTP para lembretes por e-mail.
-
-O Vercel detecta o Express automaticamente; `vercel.json` inclui os arquivos públicos
-na função. A Hobby executa Cron
-no máximo uma vez por dia, então configure um agendador externo gratuito para fazer um
-`POST` a cada minuto em `/api/cron/reminders`, enviando
-`Authorization: Bearer <CRON_SECRET>`. Não coloque o segredo no código nem o envie pelo chat.
-
-Os dados do SQLite local não são enviados automaticamente ao banco remoto. O site hospedado
-começa com contas e notas vazias; mantenha seu arquivo `rotina.db` local até decidir como
-preservar esses dados.
-
-Teste com `npm test`. O modo local continua em `npm start` e grava e-mails de teste em
-`outbox.log` quando SMTP não está configurado.
+## Segurança
+Nenhum arquivo pessoal é apagado. Não há encerramento de processos nem desinstalação de programas. A manutenção do PC não executa ações nesta versão.
