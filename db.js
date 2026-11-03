@@ -28,7 +28,8 @@ if (DATABASE_URL) {
         email TEXT UNIQUE NOT NULL,
         name TEXT,
         hash TEXT NOT NULL,
-        created BIGINT
+        created BIGINT,
+        session_version INTEGER NOT NULL DEFAULT 0
       )
     `);
     await sql.query(`
@@ -49,6 +50,7 @@ if (DATABASE_URL) {
       )
     `);
     await sql.query('ALTER TABLE notes ADD COLUMN IF NOT EXISTS email_claimed_at BIGINT');
+    await sql.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INTEGER NOT NULL DEFAULT 0');
     await sql.query('CREATE INDEX IF NOT EXISTS n_user ON notes(user_id, date)');
     await sql.query('CREATE INDEX IF NOT EXISTS n_reminders ON notes(email, emailed, fire_at)');
   })();
@@ -63,7 +65,8 @@ if (DATABASE_URL) {
       email TEXT UNIQUE NOT NULL,
       name TEXT,
       hash TEXT NOT NULL,
-      created INTEGER
+      created INTEGER,
+      session_version INTEGER NOT NULL DEFAULT 0
     );
     CREATE TABLE IF NOT EXISTS notes (
       id INTEGER PRIMARY KEY,
@@ -86,6 +89,10 @@ if (DATABASE_URL) {
   const columns = localDb.prepare('PRAGMA table_info(notes)').all().map(column => column.name);
   if (!columns.includes('email_claimed_at')) {
     localDb.exec('ALTER TABLE notes ADD COLUMN email_claimed_at INTEGER');
+  }
+  const userColumns = localDb.prepare('PRAGMA table_info(users)').all().map(column => column.name);
+  if (!userColumns.includes('session_version')) {
+    localDb.exec('ALTER TABLE users ADD COLUMN session_version INTEGER NOT NULL DEFAULT 0');
   }
   ready = Promise.resolve();
 }

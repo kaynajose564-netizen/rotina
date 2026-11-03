@@ -37,8 +37,8 @@ const okPass = (password, value) => {
   const [salt, expected] = value.split(':');
   return Boolean(salt && expected && same(hash(password, salt), value));
 };
-const startSession = (res, id) => {
-  const value = `${id}.${Date.now() + 30 * 864e5}`;
+const startSession = (res, id, version = 0) => {
+  const value = `${id}.${Date.now() + 30 * 864e5}.${version}`;
   res.setHeader(
     'Set-Cookie',
     `s=${value}.${sign(value)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${30 * 86400}${E.NODE_ENV === 'production' ? '; Secure' : ''}`
@@ -50,14 +50,15 @@ const asyncHandler = handler => (req, res, next) =>
 const auth = asyncHandler(async (req, res, next) => {
   const match = /(?:^|; )s=([^;]+)/.exec(req.headers.cookie || '');
   if (match) {
-    const [id, exp, signature] = match[1].split('.');
-    const value = `${id}.${exp}`;
+    const parts = match[1].split('.');
+    const [id, exp, version = '0', signature] = parts;
+    const value = `${id}.${exp}.${version}`;
     if (signature && same(signature, sign(value)) && Number(exp) > Date.now()) {
       const user = await db.get(
-        'SELECT id, email, name FROM users WHERE id = ?1',
+        'SELECT id, email, name, session_version FROM users WHERE id = ?1',
         [Number(id)]
       );
-      if (user) {
+      if (user && Number(user.session_version || 0) === Number(version)) {
         req.user = user;
         return next();
       }
@@ -161,7 +162,7 @@ app.post('/api/register', limit, asyncHandler(async (req, res) => {
     throw error;
   }
 
-  startSession(res, user.id);
+  startSession(res, user.id, 0);
   sendMail(
     email,
     'Bem-vindo à Rotina Diária',
@@ -176,14 +177,18 @@ app.post('/api/login', limit, asyncHandler(async (req, res) => {
   if (!user || !okPass(String(req.body.password || ''), user.hash)) {
     return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
   }
-  startSession(res, user.id);
+  startSession(res, user.id, Number(user.session_version || 0));
   res.json({ user: { email: user.email, name: user.name } });
 }));
 
-app.post('/api/logout', (req, res) => {
+app.post('/api/logout', auth, asyncHandler(async (req, res) => {
+  await db.run(
+    'UPDATE users SET session_version = COALESCE(session_version, 0) + 1 WHERE id = ?1',
+    [req.user.id]
+  );
   res.setHeader('Set-Cookie', 's=; HttpOnly; Path=/; Max-Age=0');
   res.json({ ok: 1 });
-});
+}));
 
 app.get('/api/me', auth, (req, res) => res.json({ user: req.user }));
 
